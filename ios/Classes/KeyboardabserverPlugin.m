@@ -14,6 +14,9 @@
 //高度
 @property(nonatomic,assign) double height;
 
+//宽度
+@property(nonatomic,assign) double width;
+
 @end
 
 
@@ -54,13 +57,15 @@
     UIViewController* root=[[UIApplication sharedApplication].keyWindow rootViewController];
     //拿到最顶层的controller
     UIViewController *topController = [self _topViewController:root];
-    //位置位于最下方
-    _frameView  = [[UIView alloc]initWithFrame:CGRectMake(0,
-                                                          topController.view.bounds.size.height,
-                                                          topController.view.bounds.size.width,
-                                                          0)];
     //高度
     _height=topController.view.bounds.size.height;
+    //宽度
+    _width=topController.view.bounds.size.width;
+    //位置位于最下方
+    _frameView  = [[UIView alloc]initWithFrame:CGRectMake(0,
+                                                          _height,
+                                                          _width,
+                                                          0)];
     //添加
     [topController.view addSubview:_frameView];
 }
@@ -87,11 +92,9 @@
 
 //循环
 -(void)timerAction:(id)data{
+    //返回高度
     if(_frameView!=nil&&_eventSink!=nil){
-        //获取layer
-        CALayer* layer =_frameView.layer.presentationLayer;
-        //返回高度
-        _eventSink([NSNumber numberWithDouble:_height-layer.frame.origin.y]);
+        _eventSink([NSNumber numberWithDouble:_height-_frameView.layer.presentationLayer.frame.origin.y]);
     }
 }
 
@@ -106,7 +109,7 @@
     
     UIViewAnimationCurve keyboardTransitionAnimationCurve = [KeyboardabserverPlugin returnKeyBoardAnimationCurve:notification];
     
-    NSTimer* _timerShow=[NSTimer timerWithTimeInterval:0.005
+    NSTimer* _timerShow=[NSTimer timerWithTimeInterval:0.01
                                                 target:self
                                               selector:@selector(timerAction:)
                                               userInfo:nil
@@ -122,7 +125,7 @@
                      animations:^{
         
         CGFloat  y                     = safeSelf.height;
-        CGRect frame                   = CGRectMake(0, y, 320, 0);
+        CGRect frame                   = CGRectMake(0, y,safeSelf.width, 0);
         frame.origin.y                -= keyboardEndFrameWindow.size.height;
         safeSelf.frameView.frame = frame;
         
@@ -143,7 +146,7 @@
     
     UIViewAnimationCurve keyboardTransitionAnimationCurve = [KeyboardabserverPlugin returnKeyBoardAnimationCurve:notification];
     
-    NSTimer* _timerHide=[NSTimer timerWithTimeInterval:0.005
+    NSTimer* _timerHide=[NSTimer timerWithTimeInterval:0.01
                                                 target:self
                                               selector:@selector(timerAction:)
                                               userInfo:nil
