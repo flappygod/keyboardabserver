@@ -109,7 +109,7 @@
     
     UIViewAnimationCurve keyboardTransitionAnimationCurve = [KeyboardabserverPlugin returnKeyBoardAnimationCurve:notification];
     
-    NSTimer* _timerShow=[NSTimer timerWithTimeInterval:0.01
+    NSTimer* _timerShow=[NSTimer timerWithTimeInterval:0.005
                                                 target:self
                                               selector:@selector(timerAction:)
                                               userInfo:nil
@@ -146,7 +146,7 @@
     
     UIViewAnimationCurve keyboardTransitionAnimationCurve = [KeyboardabserverPlugin returnKeyBoardAnimationCurve:notification];
     
-    NSTimer* _timerHide=[NSTimer timerWithTimeInterval:0.01
+    NSTimer* _timerHide=[NSTimer timerWithTimeInterval:0.005
                                                 target:self
                                               selector:@selector(timerAction:)
                                               userInfo:nil
