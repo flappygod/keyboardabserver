@@ -207,7 +207,6 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
       widget.controller.setFocusListener((focusNode) {
         if (focusNode.hasFocus) {
           if (kIsWeb || !Platform.isIOS) {
-            print("AAAAA");
             WidgetsBinding.instance!.addPostFrameCallback((callback) {
               _changeUserControlHeight();
             });
