@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'dart:async';
 import 'dart:io';
 
-class Keyboardabserver {
+class KeyboardAbserverListenManager {
   //设置
   static const MethodChannel _channel = const MethodChannel('keyboardabserver');
 
@@ -133,7 +133,7 @@ class _KeyboardObserverState extends State<KeyboardObserver> with TickerProvider
     if (Platform.isIOS && !kIsWeb) {
       //直接添加监听
       if (widget.animationListener != null) {
-        Keyboardabserver.addKeyboardListener(widget.animationListener!);
+        KeyboardAbserverListenManager.addKeyboardListener(widget.animationListener!);
       }
       return;
     }
@@ -174,7 +174,7 @@ class _KeyboardObserverState extends State<KeyboardObserver> with TickerProvider
     if (Platform.isIOS && !kIsWeb) {
       //移除监听
       if (widget.animationListener != null) {
-        Keyboardabserver.removeKeyboardListener(widget.animationListener!);
+        KeyboardAbserverListenManager.removeKeyboardListener(widget.animationListener!);
       }
       return;
     }
