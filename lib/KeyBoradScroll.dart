@@ -68,7 +68,7 @@ class KeyBroadScrollController {
   double _formerEnd = 0;
 
   //输入框的wrapper
-  List<TextFieldWrapper> _wrappers = [];
+  final List<TextFieldWrapper> _wrappers = [];
 
   //监听
   TextFieldWrapperListener? _focusChangedListener;
@@ -143,7 +143,7 @@ class KeyBroadScroll extends StatefulWidget {
     Key? key,
     required this.controller,
     required this.child,
-    this.closeWhenTap: false,
+    this.closeWhenTap=false,
     this.scrollType = KeyBroadScrollType.fitEveryText,
   }) : super(key: key);
 
@@ -155,8 +155,6 @@ class KeyBroadScroll extends StatefulWidget {
 
 //创建
 class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStateMixin, WidgetsBindingObserver {
-  //全局key
-  GlobalKey _globalKey = new GlobalKey();
 
   //控制器
   AnimationController? outController;
@@ -180,6 +178,7 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
   VoidCallback? _defaultHeightCallback;
 
   //初始化
+  @override
   void initState() {
     //状态初始化
     super.initState();
@@ -271,6 +270,7 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
   }
 
 //更新
+  @override
   void didUpdateWidget(KeyBroadScroll old) {
     super.didUpdateWidget(old);
   }
@@ -286,6 +286,7 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
   }
 
 //释放
+  @override
   void dispose() {
     //移除
     WidgetsBinding.instance!.removeObserver(this);
@@ -312,7 +313,7 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
       }
     };
     //控制器创建
-    outController = new AnimationController(
+    outController = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
@@ -327,7 +328,7 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
       }
     };
     //控制器创建
-    inController = new AnimationController(
+    inController = AnimationController(
       duration: const Duration(
         milliseconds: 250,
       ),
@@ -371,8 +372,8 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
   void _createOutAnim(double former, double newValue) {
     inAnimation?.removeListener(_inListener!);
     outAnimation?.removeListener(_outListener!);
-    outAnimation = new ReverseTween(
-      new Tween(
+    outAnimation = ReverseTween(
+      Tween(
         begin: newValue,
         end: former,
       ),
@@ -389,7 +390,7 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
   void _createInAnim(double former, double newValue) {
     inAnimation?.removeListener(_inListener!);
     outAnimation?.removeListener(_outListener!);
-    inAnimation = new Tween(
+    inAnimation = Tween(
       begin: former,
       end: newValue,
     ).animate(
@@ -404,16 +405,15 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
 
   @override
   Widget build(BuildContext context) {
-    return new GestureDetector(
+    return GestureDetector(
       onVerticalDragEnd: (data) {
         FocusScope.of(context).requestFocus(FocusNode());
       },
       onTap: () {
         FocusScope.of(context).requestFocus(FocusNode());
       },
-      child: new Transform.translate(
-        key: _globalKey,
-        offset: new Offset(0, -widget.controller._nowValue),
+      child: Transform.translate(
+        offset: Offset(0, -widget.controller._nowValue),
         child: widget.child,
       ),
     );
