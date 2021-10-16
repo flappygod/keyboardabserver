@@ -405,9 +405,6 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
   @override
   Widget build(BuildContext context) {
     return new GestureDetector(
-      onHorizontalDragEnd: (data) {
-        FocusScope.of(context).requestFocus(FocusNode());
-      },
       onVerticalDragEnd: (data) {
         FocusScope.of(context).requestFocus(FocusNode());
       },
