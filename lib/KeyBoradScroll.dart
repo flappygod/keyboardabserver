@@ -273,6 +273,8 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
   @override
   void didUpdateWidget(KeyBroadScroll old) {
     super.didUpdateWidget(old);
+    //绘制完成后确认当前的控件高度
+    widget.controller.refreshHeights();
   }
 
   @override
