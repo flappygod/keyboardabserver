@@ -6,15 +6,12 @@ import 'dart:io';
 typedef TextFieldWrapperListener = void Function(FocusNode focusNode);
 
 class TextFieldWrapper {
-  //通过控件的焦点和key构造
   TextFieldWrapper.fromKey({
     required this.focusNode,
     required this.focusKey,
     this.more = 0,
   }) {
-    //回调
     _focusDelegateListener = () {
-      //当前的焦点变化
       if (_focusChangedListener != null) {
         _focusChangedListener!(focusNode);
       }
@@ -22,58 +19,52 @@ class TextFieldWrapper {
     focusNode.addListener(_focusDelegateListener!);
   }
 
-  //焦点变化的代理监听
+  //focus delegate
   VoidCallback? _focusDelegateListener;
 
-  //焦点变化的外部监听，用于通知
+  //focus change listener
   TextFieldWrapperListener? _focusChangedListener;
 
   //key
   GlobalKey focusKey;
 
-  //焦点
+  //focus
   FocusNode focusNode;
 
-  //底部
+  //bottom
   double _bottom = 0;
 
   //more
   double more;
 
-  //刷新底部距离
+  //refresh height
   void _refreshBottomHeight(double offsetHeight) {
-    //同时刷新距离吧
     if (focusKey.currentContext != null) {
-      //找到
       final RenderBox renderBox = focusKey.currentContext!.findRenderObject() as RenderBox;
-      //正下方底部距离
       var offset = renderBox.localToGlobal(Offset(0.0, renderBox.size.height));
-      //底部距离
       _bottom = MediaQuery.of(focusKey.currentContext!).size.height - offset.dy;
     }
   }
 
-  //获取底部距离
+  //get bottom
   double getBottom() {
     return _bottom - more;
   }
 }
 
-//控制器
+//controller
 class KeyBroadScrollController {
-  //默认为零
   double _nowValue = 0;
 
-  //当前的高度
   double _formerEnd = 0;
 
-  //输入框的wrapper
+  //wrapper
   final List<TextFieldWrapper> _wrappers = [];
 
-  //监听
+  //listener
   TextFieldWrapperListener? _focusChangedListener;
 
-  //设置焦点切换的监听
+  //set focus listener
   void setFocusListener(TextFieldWrapperListener listener) {
     _focusChangedListener = listener;
     for (int s = 0; s < _wrappers.length; s++) {
@@ -81,7 +72,7 @@ class KeyBroadScrollController {
     }
   }
 
-  //添加
+  //add text field wrapper
   void addTextFieldWrapper(TextFieldWrapper wrapper) {
     if (!_wrappers.contains(wrapper)) {
       wrapper._focusChangedListener = _focusChangedListener;
@@ -89,21 +80,21 @@ class KeyBroadScrollController {
     }
   }
 
-  //移除
+  //remove text field wrapper
   void removeTextFieldWrapper(TextFieldWrapper wrapper) {
     if (_wrappers.contains(wrapper)) {
       _wrappers.remove(wrapper);
     }
   }
 
-  //刷新高度
+  //refresh height
   void refreshHeights() {
     for (int s = 0; s < _wrappers.length; s++) {
       _wrappers[s]._refreshBottomHeight(_nowValue);
     }
   }
 
-  //获取当前选中的控件和底部最小的距离
+  //get bottom margin
   double getBottomNeedMargin() {
     double? smaller;
     for (int s = 0; s < _wrappers.length; s++) {
@@ -117,26 +108,26 @@ class KeyBroadScrollController {
   }
 }
 
-//类型
+//type
 enum KeyBroadScrollType {
-  //只针对底部
+  //just bottom
   fitJustBottom,
-  //针对每个text
+  //each text
   fitEveryText,
 }
 
-//创建
+//KeyBroadScroll widget
 class KeyBroadScroll extends StatefulWidget {
-  //关闭
+  //close when tap
   final bool closeWhenTap;
 
   //child
   final Widget child;
 
-  //控制器
+  //controller
   final KeyBroadScrollController controller;
 
-  //类型
+  //type
   final KeyBroadScrollType scrollType;
 
   const KeyBroadScroll({
@@ -153,56 +144,48 @@ class KeyBroadScroll extends StatefulWidget {
   }
 }
 
-//创建
+//state
 class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStateMixin, WidgetsBindingObserver {
 
-  //控制器
+  //out animation
   AnimationController? outController;
 
-  //控制器
+  //int animation
   AnimationController? inController;
 
-  //动画
+  //out animation
   Animation<double>? inAnimation;
 
-  //动画
+  //int animation
   Animation<double>? outAnimation;
 
-  //进入
+  //in anim listener
   VoidCallback? _inListener;
 
-  //消失
+  //out anim listener
   VoidCallback? _outListener;
 
-  //默认的
+  //default height
   VoidCallback? _defaultHeightCallback;
 
-  //初始化
   @override
   void initState() {
-    //状态初始化
     super.initState();
-    //初始化controller
     initOutAnim();
-    //初始化controller
     initInAnim();
-    //默认callback
     _defaultHeightCallback = () {
       _changeDefaultHeight();
     };
-    //绘制完成后确认当前的控件高度
     WidgetsBinding.instance!.addPostFrameCallback((callback) {
       _initController();
     });
-    //监听
     WidgetsBinding.instance!.addObserver(this);
   }
 
-  //初始化控制器
+  //init controller
   void _initController() {
-    //以每个EditText为准
     if (widget.scrollType == KeyBroadScrollType.fitEveryText) {
-      //设置监听
+      //set listener
       widget.controller.setFocusListener((focusNode) {
         if (focusNode.hasFocus) {
           if (kIsWeb || !Platform.isIOS) {
@@ -214,7 +197,7 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
       });
       widget.controller.refreshHeights();
     }
-    //以底部为标准
+    //bottom type
     if (widget.scrollType == KeyBroadScrollType.fitJustBottom) {
       if (_defaultHeightCallback != null) {
         registerFrameListener(_defaultHeightCallback!);
@@ -222,13 +205,13 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
     }
   }
 
-  //是否增加了
+  //is init or not
   static bool initFlag = false;
 
-  //回调列表
+  //callbacks
   static List<VoidCallback> callbacks = [];
 
-  //初始化键盘弹出监听
+  //register
   static void registerFrameListener(VoidCallback callback) {
     WidgetsBinding widgetsBinding = WidgetsBinding.instance!;
     callbacks.add(callback);
@@ -241,26 +224,22 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
     }
   }
 
-  //移除
+  //remove
   static void unRegisterFrameListener(VoidCallback callback) {
     callbacks.remove(callback);
   }
 
-  //修改高度
   void _changeDefaultHeight() {
-    //如果底部的高度和之前的不一致
     if (widget.controller._formerEnd != MediaQuery.of(context).viewInsets.bottom) {
-      //设置新的值
       double newValue = MediaQuery.of(context).viewInsets.bottom;
-      //设置之前的
       widget.controller._formerEnd = newValue;
-      //如果之前的比新的大，代表是缩回操作
+      //contract
       if (widget.controller._nowValue > newValue) {
         _createOutAnim(widget.controller._nowValue, newValue);
         outController!.reset();
         outController!.forward();
       }
-      //代表顶出去的操作
+      //show out
       else {
         _createInAnim(widget.controller._nowValue, newValue);
         inController!.reset();
@@ -269,11 +248,10 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
     }
   }
 
-//更新
+
   @override
   void didUpdateWidget(KeyBroadScroll old) {
     super.didUpdateWidget(old);
-    //绘制完成后确认当前的控件高度
     widget.controller.refreshHeights();
   }
 
@@ -287,26 +265,20 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
     }
   }
 
-//释放
   @override
   void dispose() {
-    //移除
     WidgetsBinding.instance!.removeObserver(this);
-    //移除
     if (_defaultHeightCallback != null) {
-      //释放
       unRegisterFrameListener(_defaultHeightCallback!);
-      //移除
       _defaultHeightCallback = null;
     }
-    //释放
     outController?.dispose();
-    //释放
     inController?.dispose();
     super.dispose();
   }
 
-//初始化退出动画
+
+  //out anim
   void initOutAnim() {
     _outListener = () {
       if (outAnimation != null) {
@@ -314,14 +286,13 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
         if (mounted) setState(() {});
       }
     };
-    //控制器创建
     outController = AnimationController(
       duration: const Duration(milliseconds: 250),
       vsync: this,
     );
   }
 
-//初始化开始动画
+  //in anim
   void initInAnim() {
     _inListener = () {
       if (inAnimation != null) {
@@ -329,7 +300,6 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
         if (mounted) setState(() {});
       }
     };
-    //控制器创建
     inController = AnimationController(
       duration: const Duration(
         milliseconds: 250,
@@ -338,29 +308,20 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
     );
   }
 
-  //通过用户控制，改变
+  //text focused height change
   void _changeUserControlHeight() {
-    //返回
     if (mounted) {
-      //底部距离
       double bottomNearest = widget.controller.getBottomNeedMargin();
-      //底部的距离
       double bottomMargin = MediaQuery.of(context).viewInsets.bottom;
-      //我们需要向上移动的距离
       double bottomNeed = (bottomMargin - bottomNearest) < 0 ? 0 : (bottomMargin - bottomNearest);
-      //之前的
       if (widget.controller._formerEnd != bottomNeed) {
-        //底部需要移动的距离
         double newValue = bottomNeed;
-        //设置之前的
         widget.controller._formerEnd = newValue;
-        //如果之前的比新的大，代表是缩回操作
         if (widget.controller._nowValue > newValue) {
           _createOutAnim(widget.controller._nowValue, newValue);
           outController!.reset();
           outController!.forward();
         }
-        //代表顶出去的操作
         else {
           _createInAnim(widget.controller._nowValue, newValue);
           inController!.reset();
@@ -370,7 +331,6 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
     }
   }
 
-//通过新的值创建缩回的动画
   void _createOutAnim(double former, double newValue) {
     inAnimation?.removeListener(_inListener!);
     outAnimation?.removeListener(_outListener!);
@@ -388,7 +348,6 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
     outAnimation!.addListener(_outListener!);
   }
 
-//通过新的值创建弹出动画
   void _createInAnim(double former, double newValue) {
     inAnimation?.removeListener(_inListener!);
     outAnimation?.removeListener(_outListener!);
@@ -401,7 +360,6 @@ class _KeyBroadScrollState extends State<KeyBroadScroll> with TickerProviderStat
         curve: Curves.easeInOut,
       ),
     );
-    //添加监听
     inAnimation!.addListener(_inListener!);
   }
 

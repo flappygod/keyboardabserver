@@ -5,26 +5,24 @@ import 'dart:async';
 import 'dart:io';
 
 class KeyboardAbserverListenManager {
-  //设置
-  static const MethodChannel _channel = const MethodChannel('keyboardabserver');
+  //set channel
+  static const MethodChannel _channel = MethodChannel('keyboardabserver');
 
-  //设置eventChannel
+  //eventChannel
   static const EventChannel _eventChannel = EventChannel('keyboardabserver_event');
 
-  //是否处于监听状态
+  //listen state
   static bool _listenState = false;
 
-  //监听列表
-  static List<KeyboardAnimationListener> _listeners = [];
+  //listener
+  static final List<KeyboardAnimationListener> _listeners = [];
 
-  //添加监听
+  //add listener
   static void addKeyboardListener(KeyboardAnimationListener animationListener) {
     _listeners.add(animationListener);
     if (!_listenState) {
       _listenState = true;
-      //注册用于和原生代码的持续回调
       Stream<double> stream = _eventChannel.receiveBroadcastStream().map((result) => result as double);
-      //数据
       stream.listen((data) {
         for (int s = 0; s < _listeners.length; s++) {
           _listeners[s](data);
@@ -33,46 +31,47 @@ class KeyboardAbserverListenManager {
     }
   }
 
-  //移除监听
+  //remove
   static void removeKeyboardListener(KeyboardAnimationListener animationListener) {
     _listeners.remove(animationListener);
   }
 }
 
-//监听键盘弹出收回
+//listener
 typedef KeyboardObserverListener = Function(double old, double height);
 
-//监听键盘动画数值
+//animation listener
 typedef KeyboardAnimationListener = Function(double bottomInsets);
 
-//监听
+//observer
 class KeyboardObserver extends StatefulWidget {
-  //子类
+  //child
   final Widget? child;
 
-  //动画曲线
+  //curve show
   final Curve? curveShow;
 
-  //动画duration
+  //animation duration show
   final Duration? durationShow;
 
-  //动画曲线
+  //curve
   final Curve? curveHide;
 
-  //动画duration
+  //animation duration hide
   final Duration? durationHide;
 
-  //显示
+  //listener
   final KeyboardObserverListener? showListener;
 
-  //隐藏的监听
+  //hide listener
   final KeyboardObserverListener? hideListener;
 
-  //动画监听
+  //animation listener
   final KeyboardAnimationListener? animationListener;
 
-  //子类
-  KeyboardObserver({
+  //add key
+  const KeyboardObserver({
+    Key? key,
     this.child,
     this.showListener,
     this.hideListener,
@@ -81,7 +80,7 @@ class KeyboardObserver extends StatefulWidget {
     this.curveHide,
     this.durationHide,
     this.animationListener,
-  });
+  }):super(key: key);
 
   @override
   State<StatefulWidget> createState() {
@@ -89,66 +88,62 @@ class KeyboardObserver extends StatefulWidget {
   }
 }
 
-//状态切换
+//state
 class _KeyboardObserverState extends State<KeyboardObserver> with TickerProviderStateMixin {
-  //创建globleKey
-  GlobalKey _globalKey = new GlobalKey();
+  //create globle key
+  final GlobalKey _globalKey = GlobalKey();
 
-  //之前的bottom
+  //bottom
   double _formerBottom = 0;
 
-  //显示控制器
+  //show animation controller
   late AnimationController _showAnimationController;
 
-  //隐藏控制器
+  //hide  animation controller
   late AnimationController _hideAnimationController;
 
-  //之前的高度
+  //former height
   double _formerHeight = 0;
 
-  //显示的监听
+  //show listener
   late VoidCallback _showListener;
 
-  //隐藏的监听
+  //hide listener
   late VoidCallback _hideListener;
 
-  //显示动画
+  //show anim
   Animation<double>? _showAnim;
 
-  //显示动画
+  //hide anim
   Animation<double>? _hideAnim;
 
-  //初始化状态
+  //init state
+  @override
   void initState() {
-    //初始化动画数据
     _initAnimation();
-    //初始化之前的数据
     _initFormerData();
     super.initState();
   }
 
-  //初始化动画
+  //animation
   void _initAnimation() {
-    //苹果原生特殊处理
+    //apple
     if (Platform.isIOS && !kIsWeb) {
-      //直接添加监听
       if (widget.animationListener != null) {
         KeyboardAbserverListenManager.addKeyboardListener(widget.animationListener!);
       }
       return;
     }
-    //显示的animation
-    _showAnimationController = new AnimationController(duration: widget.durationShow ?? new Duration(milliseconds: 350), vsync: this);
-    //隐藏的animation
-    _hideAnimationController = new AnimationController(duration: widget.durationHide ?? new Duration(milliseconds: 350), vsync: this);
-    //显示的监听
+    _showAnimationController = AnimationController(duration: widget.durationShow ?? const Duration(milliseconds: 350), vsync: this);
+    _hideAnimationController = AnimationController(duration: widget.durationHide ?? const Duration(milliseconds: 350), vsync: this);
+    //show listener
     _showListener = () {
       _formerHeight = _showAnim!.value;
       if (widget.animationListener != null) {
         widget.animationListener!(_formerHeight);
       }
     };
-    //隐藏的监听
+    //hide listener
     _hideListener = () {
       _formerHeight = _hideAnim!.value;
       if (widget.animationListener != null) {
@@ -157,39 +152,36 @@ class _KeyboardObserverState extends State<KeyboardObserver> with TickerProvider
     };
   }
 
-  //初始化之前的数据
+  //init former data
   void _initFormerData() {
-    //绘制完成后确认当前的控件高度
+    //add post callback
     WidgetsBinding.instance!.addPostFrameCallback((callback) {
-      //底部的距离
       if (_formerBottom == 0) {
         _formerBottom = MediaQuery.of(context).viewInsets.bottom;
       }
     });
   }
 
-  //释放控制器
+  //dispose
   void _disposeController() {
-    //苹果原生特殊处理
     if (Platform.isIOS && !kIsWeb) {
-      //移除监听
       if (widget.animationListener != null) {
         KeyboardAbserverListenManager.removeKeyboardListener(widget.animationListener!);
       }
       return;
     }
-    //其他方式都是通过键盘弹出来确定的
     _showAnimationController.dispose();
     _hideAnimationController.dispose();
   }
 
-  //移除
+  //remove
+  @override
   void dispose() {
     _disposeController();
     super.dispose();
   }
 
-  //检查底部并进行通知
+  //check bottom and notify
   Future<void> _checkBottomAndNotify() async {
     if (MediaQuery.of(context).viewInsets.bottom > _formerBottom) {
       double changed = MediaQuery.of(context).viewInsets.bottom - _formerBottom;
@@ -208,9 +200,9 @@ class _KeyboardObserverState extends State<KeyboardObserver> with TickerProvider
     }
   }
 
-  //显示animation
+  //show animation
   void _showAnimation(double _former, double changed) {
-    //苹果原生特殊处理
+    //is ios
     if (Platform.isIOS && !kIsWeb) {
       return;
     }
@@ -220,23 +212,23 @@ class _KeyboardObserverState extends State<KeyboardObserver> with TickerProvider
     if (_showAnim != null) {
       _showAnim!.removeListener(_showListener);
     }
-    //停止之前的
+    //stop former
     _hideAnimationController.stop();
     _showAnimationController.stop();
     _hideAnimationController.reset();
     _showAnimationController.reset();
-    //显示
-    _showAnim = new Tween<double>(begin: _formerHeight, end: _former + changed).animate(
+    //_showAnim
+    _showAnim = Tween<double>(begin: _formerHeight, end: _former + changed).animate(
       _showAnimationController,
     );
     _showAnim!.addListener(_showListener);
-    //开启动画
+    //start animation
     _showAnimationController.forward();
   }
 
-  //隐藏animaiton
+  //hide anim
   void _hideAnimation(double _former, double changed) {
-    //苹果原生特殊处理
+    //is ios
     if (Platform.isIOS && !kIsWeb) {
       return;
     }
@@ -246,24 +238,24 @@ class _KeyboardObserverState extends State<KeyboardObserver> with TickerProvider
     if (_showAnim != null) {
       _showAnim!.removeListener(_showListener);
     }
-    //停止之前的
+    //stop former
     _hideAnimationController.stop();
     _showAnimationController.stop();
     _showAnimationController.reset();
     _hideAnimationController.reset();
-    //显示
-    _hideAnim = new Tween<double>(begin: _formerHeight, end: _former - changed).animate(
+    //hide
+    _hideAnim = Tween<double>(begin: _formerHeight, end: _former - changed).animate(
       _hideAnimationController,
     );
     _hideAnim!.addListener(_hideListener);
-    //开启动画
+    //hide animation
     _hideAnimationController.forward();
   }
 
   @override
   Widget build(BuildContext context) {
     _checkBottomAndNotify();
-    return new Container(
+    return Container(
       key: _globalKey,
       child: widget.child,
     );
